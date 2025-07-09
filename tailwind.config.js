@@ -1,0 +1,25 @@
+export default {
+	theme: {
+		colors: {
+			primary: 'hsl(var(--primary))',
+			'primary-hover': 'hsl(var(--primary-hover))',
+			'primary-foreground': 'hsl(var(--primary-foreground))',
+			secondary: 'hsl(var(--secondary))',
+			'secondary-hover': 'hsl(var(--secondary-hover))',
+			'secondary-foreground': 'hsl(var(--secondary-foreground))',
+			success: 'hsl(var(--success))',
+			'success-foreground': 'hsl(var(--success-foreground))',
+			destructive: 'hsl(var(--destructive))',
+			'destructive-foreground': 'hsl(var(--destructive-foreground))',
+			background: 'hsl(var(--background))',
+			card: 'hsl(var(--card))',
+			border: 'hsl(var(--border))',
+			ring: 'hsl(var(--ring))',
+			'text-primary': 'hsl(var(--text-primary-foreground))',
+			'text-secondary': 'hsl(var(--text-secondary))',
+			'text-muted': 'hsl(var(--text-muted))',
+			overlay: 'hsla(0, 0%, 0%, 0.5)',
+		},
+	},
+	plugins: [],
+};
