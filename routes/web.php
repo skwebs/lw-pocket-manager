@@ -15,6 +15,7 @@ Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
     Volt::route('account', 'account')->name('account');
+    Volt::route('accounts', 'accounts')->name('accounts');
     Volt::route('account-types', 'account-types')->name('account-types');
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');

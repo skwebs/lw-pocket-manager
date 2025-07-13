@@ -19,10 +19,9 @@ $refreshAccounts = computed(fn () => Account::with('accountType')->get());
 
 // Open modal for creating a new account
 $openCreateModal = function () {
-	$this->reset(['name', 'account_type_id', 'edit_id', 'error_message']);
-	$this->resetValidation();
-	session()->forget(['success', 'error']);
 	$this->modal('add-edit-modal')->show();
+	$this->reset(['name', 'account_type_id', 'edit_id', 'error_message']);
+	// $this->show_modal = true;
 };
 
 // Open modal for editing an existing account
@@ -30,25 +29,23 @@ $openEditModal = function ($id) {
 	$account = Account::findOrFail($id);
 	$this->name = $account->name;
 	$this->account_type_id = $account->account_type_id;
+	// $this->balance = $account->balance;
 	$this->edit_id = $id;
+	$this->show_modal = true;
 	$this->error_message = null;
-	$this->resetValidation();
-	session()->forget(['success', 'error']);
 	$this->modal('add-edit-modal')->show();
 };
 
 // Close modal and reset form
 $resetForm = function () {
 	$this->reset(['name', 'account_type_id', 'edit_id', 'show_modal', 'error_message']);
-	$this->resetValidation();
-	session()->forget(['success', 'error']);
 };
 
 // Save (create or update) account
 $save = function () {
 	$validated = $this->validate(
 		[
-			'name' => 'required|string|max:100|unique:accounts,name,' . ($this->edit_id ? $this->edit_id : 'NULL'),
+			'name' => 'required|string|max:100',
 			'account_type_id' => 'required|exists:account_types,id',
 		],
 		[
@@ -92,6 +89,13 @@ $delete = function ($id) {
 	}
 };
 
+// Close modal and reset form
+$resetForm = function () {
+	$this->reset(['name', 'account_type_id', 'edit_id', 'show_modal', 'error_message']);
+	$this->resetValidation();
+	session()->forget(['success', 'error']);
+};
+
 // Listen for events
 on([
 	'account-created' => function ($message) {
@@ -110,55 +114,46 @@ on([
 
 ?>
 
-<div class="font-inter mx-auto max-w-4xl">
+<div class="font-inter mx-auto max-w-4xl p-6">
 	<!-- Header and Create Button -->
 	<div class="mb-6 flex items-center justify-between">
 		<h2 class="text-xl font-semibold text-[oklch(0.3_0.1_260)]">Accounts</h2>
 
-		<button wire:click="openCreateModal" class="cursor-pointer text-white flex items-center gap-2 rounded-lg bg-[oklch(0.7_0.2_250)] px-4 py-2 transition duration-200 hover:bg-[oklch(0.65_0.22_250)] focus:ring focus:ring-[oklch(0.8_0.15_250)]">
-			<flux:icon.plus />
+		<button wire:click="openCreateModal" class="text-white flex items-center gap-2 rounded-lg bg-[oklch(0.7_0.2_250)] px-4 py-2 transition duration-200 hover:bg-[oklch(0.65_0.22_250)] focus:ring focus:ring-[oklch(0.8_0.15_250)]">
+			<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+			</svg>
 			Add Account
 		</button>
+
+		<flux:modal.trigger wire:close="resetForm" wire:cancel="resetForm" name="add-edit-modal">
+			<flux:button>
+				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+				</svg>
+				Add Account
+			</flux:button>
+		</flux:modal.trigger>
 	</div>
 
-	<!-- Toast Notifications for Success/Error -->
-	<div class="fixed right-4 top-4 z-50 space-y-2">
-		@if (session('success'))
-			<div
-				x-data="{ show: true }"
-				x-show="show"
-				x-init="setTimeout(() => (show = false), 3000)"
-				x-transition:enter="transition ease-out duration-300"
-				x-transition:enter-start="opacity-0 transform translate-y-4"
-				x-transition:enter-end="opacity-100 transform translate-y-0"
-				x-transition:leave="transition ease-in duration-200"
-				x-transition:leave-end="opacity-0 transform translate-y-4"
-				class="flex items-center gap-2 rounded-lg bg-[oklch(0.95_0.05_140)] p-4 text-[oklch(0.5_0.15_140)] shadow-md">
-				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-				</svg>
-				{{ session('success') }}
-			</div>
-		@endif
+	<!-- Success/Error Messages -->
+	@if (session('success'))
+		<div class="mb-6 flex items-center gap-2 rounded-lg bg-[oklch(0.95_0.05_140)] p-4 text-[oklch(0.5_0.15_140)]">
+			<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+			</svg>
+			{{ session('success') }}
+		</div>
+	@endif
 
-		@if (session('error'))
-			<div
-				x-data="{ show: true }"
-				x-show="show"
-				x-init="setTimeout(() => (show = false), 3000)"
-				x-transition:enter="transition ease-out duration-300"
-				x-transition:enter-start="opacity-0 transform translate-y-4"
-				x-transition:enter-end="opacity-100 transform translate-y-0"
-				x-transition:leave="transition ease-in duration-200"
-				x-transition:leave-end="opacity-0 transform translate-y-4"
-				class="flex items-center gap-2 rounded-lg bg-[oklch(0.95_0.05_10)] p-4 text-[oklch(0.5_0.15_10)] shadow-md">
-				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-				</svg>
-				{{ session('error') }}
-			</div>
-		@endif
-	</div>
+	@if (session('error'))
+		<div class="mb-6 flex items-center gap-2 rounded-lg bg-[oklch(0.95_0.05_10)] p-4 text-[oklch(0.5_0.15_10)]">
+			<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+			</svg>
+			{{ session('error') }}
+		</div>
+	@endif
 
 	<!-- Accounts Table -->
 	<div class="bg-white rounded-xl border border-[oklch(0.8_0.05_260)] shadow-lg">
@@ -166,7 +161,7 @@ on([
 			@if ($accounts->isEmpty())
 				<p class="py-6 text-center text-[oklch(0.5_0.1_260)]">No accounts found.</p>
 			@else
-				<div class="overflow-x-auto h-[calc(100vh-220px)]">
+				<div class="overflow-x-auto">
 					<table class="min-w-full divide-y divide-[oklch(0.95_0.02_260)]">
 						<thead class="sticky top-0 bg-[oklch(0.98_0.01_260)]">
 							<tr>
@@ -184,9 +179,14 @@ on([
 									<td class="px-6 py-4 text-sm text-[oklch(0.5_0.1_260)]">
 										{{ $account->accountType->name }}
 									</td>
+									{{--
+           <td class="px-6 py-4 text-sm text-[oklch(0.5_0.1_260)]">
+           ${{ number_format($account->balance, 2) }}
+           </td>
+         --}}
 									<td class="space-x-3 px-6 py-4 text-sm">
-										<button wire:click="openEditModal({{ $account->id }})" class="text-[oklch(0.6_0.2_250)] cursor-pointer transition duration-150 hover:text-[oklch(0.55_0.22_250)]" aria-label="Edit {{ $account->name }}">Edit</button>
-										<button wire:click="delete({{ $account->id }})" class="text-[oklch(0.6_0.2_10)] transition cursor-pointer duration-150 hover:text-[oklch(0.55_0.22_10)]" aria-label="Delete {{ $account->name }}" wire:confirm="Are you sure you want to delete this account?">Delete</button>
+										<button wire:click="openEditModal({{ $account->id }})" class="text-[oklch(0.6_0.2_250)] transition duration-150 hover:text-[oklch(0.55_0.22_250)]" aria-label="Edit {{ $account->name }}">Edit</button>
+										<button wire:click="delete({{ $account->id }})" class="text-[oklch(0.6_0.2_10)] transition duration-150 hover:text-[oklch(0.55_0.22_10)]" aria-label="Delete {{ $account->name }}" wire:confirm="Are you sure you want to delete this account?">Delete</button>
 									</td>
 								</tr>
 							@endforeach
@@ -197,7 +197,7 @@ on([
 		</div>
 	</div>
 
-	<flux:modal name="add-edit-modal" class="sm:w-96">
+	<flux:modal name="add-edit-modal" @close="resetForm" @cancel="resetForm" class="md:w-96">
 		<form wire:submit="save" x-ref="form">
 			<div class="space-y-6">
 				<div>
