@@ -17,11 +17,17 @@
 					<flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
 						{{ __('Dashboard') }}
 					</flux:navlist.item>
-					<flux:navlist.item icon="home" :href="route('account-types')" :current="request()->routeIs('account-types')" wire:navigate>
+					<flux:navlist.item icon="square-3-stack-3d" :href="route('account-types')" :current="request()->routeIs('account-types')" wire:navigate>
 						{{ __('Account Types') }}
 					</flux:navlist.item>
-					<flux:navlist.item icon="home" :href="route('account')" :current="request()->routeIs('account')" wire:navigate>
+					<flux:navlist.item icon="building-library" :href="route('account')" :current="request()->routeIs('account')" wire:navigate>
 						{{ __('Account') }}
+					</flux:navlist.item>
+					<flux:navlist.item icon="credit-card" :href="route('transaction-types')" :current="request()->routeIs('transaction-types')" wire:navigate>
+						{{ __('Transactions Types') }}
+					</flux:navlist.item>
+					<flux:navlist.item icon="arrow-path-rounded-square" :href="route('transactions')" :current="request()->routeIs('transactions')" wire:navigate>
+						{{ __('Transactions ') }}
 					</flux:navlist.item>
 				</flux:navlist.group>
 			</flux:navlist>

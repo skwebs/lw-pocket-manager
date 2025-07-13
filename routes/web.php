@@ -17,6 +17,10 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('account', 'account')->name('account');
     Volt::route('accounts', 'accounts')->name('accounts');
     Volt::route('account-types', 'account-types')->name('account-types');
+
+    Volt::route('transaction-types', 'transaction-types')->name('transaction-types');
+    Volt::route('transactions', 'transactions')->name('transactions');
+
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
