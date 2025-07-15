@@ -41,9 +41,6 @@ $resetForm = function () {
 	$this->reset(['name', 'can_give', 'can_take', 'editAccountType', 'show_modal']);
 	$this->resetValidation();
 	session()->forget(['success', 'error']);
-	$this->can_give = false;
-	$this->can_take = false;
-	$this->editAccountType = null;
 };
 
 $validateCheckbox = function (): bool {
@@ -190,31 +187,31 @@ on([
 			@if ($account_types->isEmpty())
 				<p class="py-6 text-center text-[oklch(0.5_0.1_260)]">No account types found.</p>
 			@else
-				<div class="overflow-x-auto max-h-[calc(100vh-220px)]">
-					<table class="min-w-full divide-y divide-[oklch(0.95_0.02_260)]">
+				<div class="overflow-x-auto max-h-[calc(100vh-200px)]">
+					<table class="table-fixed min-w-full divide-y divide-[oklch(0.95_0.02_260)]">
 						<thead class="sticky top-0 bg-[oklch(0.98_0.01_260)]">
 							<tr>
-								<th class="flex px-6 py-3 text-left text-sm font-semibold uppercase tracking-wide text-[oklch(0.5_0.1_260)]">Name</th>
-								<th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wide text-[oklch(0.5_0.1_260)]">Can Give</th>
-								<th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wide text-[oklch(0.5_0.1_260)]">Can Take</th>
-								<th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wide text-[oklch(0.5_0.1_260)]">Actions</th>
+								<th class="px-4 py-3 text-left text-sm font-semibold uppercase tracking-wide text-[oklch(0.5_0.1_260)]">Name</th>
+								<th class="text-nowrap w-32 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-[oklch(0.5_0.1_260)]">Can Give</th>
+								<th class="text-nowrap w-32 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-[oklch(0.5_0.1_260)]">Can Take</th>
+								<th class="w-32 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-[oklch(0.5_0.1_260)]">Actions</th>
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-[oklch(0.95_0.02_260)]">
 							@foreach ($account_types as $accountType)
 								<tr class="transition duration-150 hover:bg-[oklch(0.99_0.01_260)]">
-									<td class="px-6 py-4 text-sm text-[oklch(0.3_0.1_260)]">{{ $accountType->name }}</td>
-									<td class="px-6 py-4 text-sm">
+									<td class="text-nowrap px-4 py-4 text-sm text-[oklch(0.3_0.1_260)]">{{ $accountType->name }}</td>
+									<td class="text-center px-4 py-4 text-sm">
 										<span class="{{ $accountType->can_give ? 'text-[oklch(0.5_0.15_140)]' : 'text-[oklch(0.5_0.15_10)]' }}">
 											{{ $accountType->can_give ? 'Yes' : 'No' }}
 										</span>
 									</td>
-									<td class="px-6 py-4 text-sm">
+									<td class="text-center px-4 py-4 text-sm">
 										<span class="{{ $accountType->can_take ? 'text-[oklch(0.5_0.15_140)]' : 'text-[oklch(0.5_0.15_10)]' }}">
 											{{ $accountType->can_take ? 'Yes' : 'No' }}
 										</span>
 									</td>
-									<td class="space-x-3 px-6 py-4 text-sm">
+									<td class="text-center space-x-3 px-4 py-4 text-sm flex items-center justify-center">
 										<button wire:click="openEditModal({{ $accountType->id }})" class="text-[oklch(0.6_0.2_250)] transition duration-150 hover:text-[oklch(0.55_0.22_250)]" aria-label="Edit {{ $accountType->name }}">Edit</button>
 										<button wire:click="deleteAccountType({{ $accountType->id }})" class="text-[oklch(0.6_0.2_10)] transition duration-150 hover:text-[oklch(0.55_0.22_10)]" aria-label="Delete {{ $accountType->name }}" wire:confirm="Are you sure you want to delete this account type?">Delete</button>
 									</td>
@@ -236,11 +233,9 @@ on([
 
 				<div>
 					<flux:input label="Account Type Name" wire:model.live="name" id="name" placeholder="e.g., Bank, Credit Card" />
-					{{--
-       @error('name')
-       <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
-       @enderror
-     --}}
+					@error('name')
+						<p class="mt-1 text-sm text-red-500">{{ $message }}</p>
+					@enderror
 				</div>
 
 				<div class="space-y-3">
