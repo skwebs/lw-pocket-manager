@@ -1,8 +1,8 @@
 <?php
-
 namespace App\Http\Livewire;
 
 use App\Models\AccountType;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use function Livewire\Volt\{state, rules, on};
 
@@ -15,11 +15,36 @@ state([
 	'show_modal' => false,
 ]);
 
+// Extend the validator with a custom rule
+Validator::extend('at_least_one_checked', function ($attribute, $value, $parameters, $validator) {
+	$data = $validator->getData();
+	return $data['can_give'] || $data['can_take'];
+});
+
+// Define custom error message for at_least_one_checked
+Validator::replacer('at_least_one_checked', fn ($message, $attribute, $rule, $parameters) => 'At least one of Can Give or Can Take must be selected.');
+
+// Define validation rules
 rules([
 	'name' => ['required', 'string', 'max:50'],
 	'can_give' => ['boolean'],
-	'can_take' => ['boolean'],
+	'can_take' => ['boolean', 'at_least_one_checked'],
 ]);
+
+// Real-time validation for can_give and can_take
+$updated = function ($propertyName) {
+	if (in_array($propertyName, ['can_give', 'can_take'])) {
+		try {
+			$this->validateOnly($propertyName, [
+				'can_give' => ['boolean'],
+				'can_take' => ['boolean', 'at_least_one_checked'],
+			]);
+			$this->resetErrorBag('can_take');
+		} catch (\Illuminate\Validation\ValidationException $e) {
+			// Errors are automatically added to the error bag
+		}
+	}
+};
 
 $openCreateModal = function () {
 	$this->resetForm();
@@ -41,15 +66,8 @@ $resetForm = function () {
 	$this->reset(['name', 'can_give', 'can_take', 'editAccountType', 'show_modal']);
 	$this->resetValidation();
 	session()->forget(['success', 'error']);
-};
-
-$validateCheckbox = function (): bool {
-	if (! $this->can_give && ! $this->can_take) {
-		$this->addError('checkbox', 'At least one option (Can Give or Can Take) must be selected.');
-		return false;
-	}
-	$this->resetErrorBag('checkbox');
-	return true;
+	$this->can_give = false;
+	$this->can_take = false;
 };
 
 $handleSuccess = function (string $message, string $event) {
@@ -65,14 +83,10 @@ $handleError = function (\Exception $e, string $message) {
 };
 
 $createAccountType = function () {
-	if (! $this->validateCheckbox()) {
-		return;
-	}
-
 	$validated = $this->validate([
 		'name' => ['required', 'string', 'max:50', Rule::unique('account_types', 'name')],
 		'can_give' => ['boolean'],
-		'can_take' => ['boolean'],
+		'can_take' => ['boolean', 'at_least_one_checked'],
 	]);
 
 	try {
@@ -89,10 +103,6 @@ $createAccountType = function () {
 };
 
 $updateAccountType = function () {
-	if (! $this->validateCheckbox()) {
-		return;
-	}
-
 	if (! $this->editAccountType) {
 		$this->dispatch('error', message: 'No account type selected for update.');
 		return;
@@ -101,7 +111,7 @@ $updateAccountType = function () {
 	$validated = $this->validate([
 		'name' => ['required', 'string', 'max:50', Rule::unique('account_types', 'name')->ignore($this->editAccountType)],
 		'can_give' => ['boolean'],
-		'can_take' => ['boolean'],
+		'can_take' => ['boolean', 'at_least_one_checked'],
 	]);
 
 	try {
@@ -233,24 +243,16 @@ on([
 
 				<div>
 					<flux:input label="Account Type Name" wire:model.live="name" id="name" placeholder="e.g., Bank, Credit Card" />
-					@error('name')
-						<p class="mt-1 text-sm text-red-500">{{ $message }}</p>
-					@enderror
 				</div>
 
 				<div class="space-y-3">
 					<flux:checkbox label="Can have outflows (Can Give)" wire:model.live="can_give" id="can_give" />
 					<flux:checkbox label="Can have inflows (Can Take)" wire:model.live="can_take" id="can_take" />
-					@error('checkbox')
-						<p class="text-sm text-red-500 font-medium">
-							<svg class="inline h-5 w-5" data-flux-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
-								<path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"></path>
-							</svg>
-							{{ $message }}
-						</p>
-					@enderror
 
-					<p class="text-sm italic text-[oklch(0.5_0.1_260)]">* At least one option must be selected</p>
+					@error('can_take')
+					@else
+						<p class="text-sm italic text-gray-500" aria-describedby="can_take-hint">* At least one option must be selected</p>
+					@enderror
 				</div>
 
 				<div class="flex gap-2">

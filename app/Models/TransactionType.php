@@ -12,4 +12,8 @@ class TransactionType extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+    protected $casts = [
+        'is_inflow' => 'boolean',
+        'is_outflow' => 'boolean',
+    ];
 }
