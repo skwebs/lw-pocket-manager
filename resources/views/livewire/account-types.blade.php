@@ -5,6 +5,7 @@ use App\Models\AccountType;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use function Livewire\Volt\{state, rules, on};
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 state([
 	'name' => '',
@@ -71,6 +72,11 @@ $resetForm = function () {
 };
 
 $handleSuccess = function (string $message, string $event) {
+	LivewireAlert::title($message)
+		->success()
+		->timer(3000)
+		->toast()
+		->show();
 	$this->dispatch($event, message: $message);
 	$this->resetForm();
 	$this->account_types = AccountType::all();
@@ -79,6 +85,11 @@ $handleSuccess = function (string $message, string $event) {
 
 $handleError = function (\Exception $e, string $message) {
 	\Log::error($e->getMessage());
+	LivewireAlert::title($message)
+		->error()
+		->timer(3000)
+		->toast()
+		->show();
 	$this->dispatch('error', message: $message);
 };
 
@@ -128,21 +139,40 @@ $updateAccountType = function () {
 	}
 };
 
-$deleteAccountType = function ($id) {
+$deleteAccountType = function ($data) {
 	try {
-		AccountType::findOrFail($id)->delete();
+		AccountType::findOrFail($data['id'])->delete();
 		$this->handleSuccess('Account type deleted successfully!', 'account-type-deleted');
 	} catch (\Exception $e) {
 		$this->handleError($e, 'Failed to delete account type.');
 	}
 };
 
-on([
-	'account-type-created' => fn ($message) => session()->flash('success', $message),
-	'account-type-updated' => fn ($message) => session()->flash('success', $message),
-	'account-type-deleted' => fn ($message) => session()->flash('success', $message),
-	'error' => fn ($message) => session()->flash('error', $message),
-]);
+$deleteActionTrigger = function ($id) {
+	LivewireAlert::title('Confirm Delete?')
+		->text('Are you sure you want to delete this account type?')
+		->withConfirmButton('Delete')
+		->confirmButtonText('Delete')
+		->timer(0)
+		->toast()
+		->withCancelButton('Cancel')
+		->confirmButtonColor('red')
+		->onConfirm('deleteAccountType', ['id' => $id])
+		->show();
+	// LivewireAlert::title('Confirm Delete?')
+	// 	->text('Are you sure you want to delete this account type?')
+	// 	->asConfirm()
+	// 	->toast()
+	// 	->onConfirm('deleteAccountType', ['id' => $id])
+	// 	->show();
+};
+
+// on([
+// 	'account-type-created' => fn ($message) => session()->flash('success', $message),
+// 	'account-type-updated' => fn ($message) => session()->flash('success', $message),
+// 	'account-type-deleted' => fn ($message) => session()->flash('success', $message),
+// 	'error' => fn ($message) => session()->flash('error', $message),
+// ]);
 
 ?>
 
@@ -193,7 +223,7 @@ on([
 
 	<!-- Account Types Table -->
 	<div class="bg-white rounded-xl border border-[oklch(0.8_0.05_260)] shadow-lg">
-		<div class="p-6">
+		<div class="p-2">
 			@if ($account_types->isEmpty())
 				<p class="py-6 text-center text-[oklch(0.5_0.1_260)]">No account types found.</p>
 			@else
@@ -210,20 +240,30 @@ on([
 						<tbody class="divide-y divide-[oklch(0.95_0.02_260)]">
 							@foreach ($account_types as $accountType)
 								<tr class="transition duration-150 hover:bg-[oklch(0.99_0.01_260)]">
-									<td class="text-nowrap px-4 py-4 text-sm text-[oklch(0.3_0.1_260)]">{{ $accountType->name }}</td>
-									<td class="text-center px-4 py-4 text-sm">
+									<td class="text-nowrap px-4 py-2 text-sm text-[oklch(0.3_0.1_260)]">{{ $accountType->name }}</td>
+									<td class="text-center px-4 py-2 text-sm">
 										<span class="{{ $accountType->can_give ? 'text-[oklch(0.5_0.15_140)]' : 'text-[oklch(0.5_0.15_10)]' }}">
 											{{ $accountType->can_give ? 'Yes' : 'No' }}
 										</span>
 									</td>
-									<td class="text-center px-4 py-4 text-sm">
+									<td class="text-center px-4 py-2 text-sm">
 										<span class="{{ $accountType->can_take ? 'text-[oklch(0.5_0.15_140)]' : 'text-[oklch(0.5_0.15_10)]' }}">
 											{{ $accountType->can_take ? 'Yes' : 'No' }}
 										</span>
 									</td>
-									<td class="text-center space-x-3 px-4 py-4 text-sm flex items-center justify-center">
-										<button wire:click="openEditModal({{ $accountType->id }})" class="text-[oklch(0.6_0.2_250)] transition duration-150 hover:text-[oklch(0.55_0.22_250)]" aria-label="Edit {{ $accountType->name }}">Edit</button>
-										<button wire:click="deleteAccountType({{ $accountType->id }})" class="text-[oklch(0.6_0.2_10)] transition duration-150 hover:text-[oklch(0.55_0.22_10)]" aria-label="Delete {{ $accountType->name }}" wire:confirm="Are you sure you want to delete this account type?">Delete</button>
+									<td class="text-center space-x-3 px-4 py-2 text-sm flex items-center justify-center">
+										{{--
+            <button wire:click="openEditModal({{ $accountType->id }})" class="text-[oklch(0.6_0.2_250)] transition duration-150 hover:text-[oklch(0.55_0.22_250)]" aria-label="Edit {{ $accountType->name }}"><flux:icon.pencil-square class="cursor-pointer" /></button>
+            <button wire:click="deleteActionTrigger({{ $accountType->id }})" class="text-[oklch(0.6_0.2_10)] transition duration-150 hover:text-[oklch(0.55_0.22_10)]" aria-label="Delete {{ $accountType->name }}"><flux:icon.trash class="cursor-pointer" /></button>
+          --}}
+
+										<button wire:click="openEditModal({{ $accountType->id }})" class="cursor-pointer relative p-2 rounded-md bg-[oklch(0.95_0.02_260)] text-[oklch(0.6_0.2_250)] hover:bg-[oklch(0.9_0.03_250)] hover:text-[oklch(0.55_0.22_250)] transition duration-150 focus:outline-none focus:ring-2 focus:ring-[oklch(0.6_0.2_250)]" title="Edit {{ $accountType->name }}" aria-label="Edit {{ $accountType->name }}">
+											<flux:icon.pencil-square class="w-5 h-5" />
+										</button>
+										<!-- Delete Button -->
+										<button wire:click="deleteActionTrigger({{ $accountType->id }})" class="cursor-pointer relative p-2 rounded-md bg-[oklch(0.95_0.02_260)] text-[oklch(0.6_0.2_10)] hover:bg-[oklch(0.9_0.03_10)] hover:text-[oklch(0.55_0.22_10)] transition duration-150 focus:outline-none focus:ring-2 focus:ring-[oklch(0.6_0.2_10)]" title="Delete {{ $accountType->name }}" aria-label="Delete {{ $accountType->name }}">
+											<flux:icon.trash class="w-5 h-5" />
+										</button>
 									</td>
 								</tr>
 							@endforeach
